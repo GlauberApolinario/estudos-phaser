@@ -99,6 +99,10 @@ function update ()
     //Movimentação da nave ao pressionar as teclas para a esquerda e direita
     if(cursors.right.isDown){obj_player.x += 5};
     if(cursors.left.isDown){obj_player.x -= 5};
+
+    //Para impedir q a nave saia da tela devemos 
+    if(obj_player.x < 35) {obj_player.x = 35};
+    if(obj_player.x > 765) {obj_player.x = 765};
     
 }
 
