@@ -14,6 +14,10 @@ var config = {
     scene: {init: init, preload: preload, create: create, update: update, render: render}
 }
 var game = new Phaser.Game(config);
+
+//Variável de controle para atirar
+var playerPodeAtirar = 1;
+
 function init ()
 {
 
@@ -25,8 +29,12 @@ function preload ()
     //carregamento de imagens
     //this.load.image(key, source)
     //key: será o nome da imagem, src: será a pasta de origem da imagem
+    //Imagem do background
     this.load.image('spr_bg', "src/assets/img/spr_bg.png")
+    //Imagem da nave do jogador
     this.load.image('spr_player', 'src/assets/img/spr_player.png')
+    //Imagem do laser
+    this.load.image('spr_laser', 'src/assets/img/spr_laser.png')
 
     //Carregamento de uma imagem q contenham sprites
     //this.load.spritesheet(key, src, {frameWidth, frameHeight})
@@ -100,10 +108,29 @@ function update ()
     if(cursors.right.isDown){obj_player.x += 5};
     if(cursors.left.isDown){obj_player.x -= 5};
 
-    //Para impedir q a nave saia da tela devemos 
+    //Para impedir que a nave saia da tela devemos travar seu ponto x para q fique dentro dos limites
+    //como a imagem da nave tem 70 pixels e seu ponto pivot x está no seu centro, travamos 35 pixels de cada lado para impedir q ela saia da tela
     if(obj_player.x < 35) {obj_player.x = 35};
     if(obj_player.x > 765) {obj_player.x = 765};
+
+    //Ao clicar no botão espaço, será criado um objeto nos pontos x e y do obj_player usando como fonte o spr_laser e usando como ponto
+    //  pivot seu ponto central no eixo x e seu ponto superior no eixo y
+    //-------Aqui é criado um problema, se o código ficar apenas assim será criado um laser sempre q a tecla espaço for pressionada,
+    //-------e se for mantida pressionada serão criados lasers sem parar 
+    //-------para corrigir esse problema será criada uma variável de controle q será ativada ao atirar e desativada ao soltar a tecla
     
+    //Código antigo com o problema de atirar sem parar
+    // if(cursors.space.isDown){
+    //     obj_laser = this.add.image(obj_player.x, obj_player.y, 'spr_laser').setOrigin(0.5, 1)
+    // }
+    
+
+    //Código com o problema resolvido
+    if(cursors.space.isDown && playerPodeAtirar == 1){
+        obj_laser = this.add.image(obj_player.x, obj_player.y, 'spr_laser').setOrigin(0.5, 1)
+        playerPodeAtirar = 0
+    }
+    if(cursors.space.isUp){playerPodeAtirar = 1}
 }
 
 function render ()
