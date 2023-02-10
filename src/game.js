@@ -70,6 +70,7 @@ function create ()
 
     //Criado um objeto e inserido os sprites nele
     //como ponto de inserção foram usados os pontos x e y do obj_player (obj_player.x, obj_player.y), e a animação spr_fire_fx como fonte
+    //Dessa forma, sempre que o jogador se movimentar a animação irá se mover junto
     //Já seus pontos pivots foram deslocados para a metade em cada eixo pra ficar logo embaixo da nave
     //obj_fire_fx = this.add.sprite(obj_player.x, obj_player.y, 'spr_fire_fx').setOrigin(0.5, 0.5);
     //Foram criados dois objetos reproduzindo a mesma animação para simular as duas turbinas da nave, uma de cada lado
@@ -81,14 +82,24 @@ function create ()
     //onde key: é o nome da a nimação a ser reproduzida e modo será um booleano para reproduzir ou não, true como padrão
     obj_fire_fx1.anims.play('spr_fire_fx', true);
     obj_fire_fx2.anims.play('spr_fire_fx', true);
+
+    //Criações dos cursores para a movimentação da nave
+    cursors = this.input.keyboard.createCursorKeys();
 }
 
+//Função responsavel por atualizar a cada segundo
 function update ()
 {
+    //ajuste dos pontos para cada animação ficar no local correto da nave
     obj_fire_fx1.x = obj_player.x - 15;
     obj_fire_fx1.y = obj_player.y + 3;
     obj_fire_fx2.x = obj_player.x + 15;
     obj_fire_fx2.y = obj_player.y + 3;
+
+    //Movimentação da nave ao pressionar as teclas para a esquerda e direita
+    if(cursors.right.isDown){obj_player.x += 5};
+    if(cursors.left.isDown){obj_player.x -= 5};
+    
 }
 
 function render ()
