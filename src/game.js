@@ -18,6 +18,13 @@ var game = new Phaser.Game(config);
 //Variável de controle para atirar
 var playerPodeAtirar = 1;
 
+//Variável de controle para criação dos tiros
+var qtdeTiros = 0
+
+//Dois tiros poderão ser disparados por vez
+var laser1Ativo = 0;
+var laser2Ativo = 0;
+
 function init ()
 {
 
@@ -93,6 +100,12 @@ function create ()
 
     //Criações dos cursores para a movimentação da nave
     cursors = this.input.keyboard.createCursorKeys();
+
+    //Depth são as camadas onde os objetos são criados, por padrão todos são criados na 0 e na ordem em q são inseridos
+    //Jogamos os objetos do player e das animações das turbinas para a camada 1 ficando assim em uma camada acima dos lasers quando forem criados
+    obj_player.depth = 1;
+    obj_fire_fx1.depth = 1;
+    obj_fire_fx2.depth = 1;
 }
 
 //Função responsavel por atualizar a cada segundo
@@ -126,11 +139,34 @@ function update ()
     
 
     //Código com o problema resolvido
-    if(cursors.space.isDown && playerPodeAtirar == 1){
-        obj_laser = this.add.image(obj_player.x, obj_player.y, 'spr_laser').setOrigin(0.5, 1)
+    if(cursors.space.isDown && playerPodeAtirar == 1 && qtdeTiros < 2){
+        if(qtdeTiros == 0) {
+            obj_laser1 = this.add.image(obj_player.x, obj_player.y, 'spr_laser').setOrigin(0.5, 1);
+            laser1Ativo = 1;
+        }
+        if(qtdeTiros == 1) {
+            obj_laser2 = this.add.image(obj_player.x, obj_player.y, 'spr_laser').setOrigin(0.5, 1);
+            laser2Ativo = 1;
+        }
+        
+        qtdeTiros++;
         playerPodeAtirar = 0
     }
+
+    //Resetando a variavel de controle ao soltar a tecla espaçao para que o jogador possa atirar novamente
     if(cursors.space.isUp){playerPodeAtirar = 1}
+    if(laser1Ativo == 1){obj_laser1.y--};
+    if(laser2Ativo == 1){obj_laser2.y--};
+    //Variando o eixo y do laser para q ele se movimente na tela
+    //-----Isso irá causar um outro problema, pois o obj_laser só será criado ao pressionar a tecla espaço,
+    //-----então ao iniciar o jogo será apresentado um erro pelo objeto ainda não ter sido instanciado
+    //-----Para resolver esse problema serpa criada uma variável de controle para saber se já foi dado algum tiro
+    //Código antigo com problema
+    //obj_laser.y--;
+
+    //código novo com erro solucionado
+    //A variável qtdeTiros também deverá ser alterada quando um tiro for dado
+    // if(qtdeTiros > 0 ) {obj_laser.y--};
 }
 
 function render ()
