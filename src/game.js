@@ -106,6 +106,15 @@ function create ()
     obj_player.depth = 1;
     obj_fire_fx1.depth = 1;
     obj_fire_fx2.depth = 1;
+
+
+    //Criação da variável de DEBUG
+    strDebug = this.add.text(400, 5, '-DEBUG-', {
+        fontFamily: 'Verdana',
+        fontSize: '20px',
+        fill: '#FFFFFF'
+    }).setOrigin(0.5,0)
+
 }
 
 //Função responsavel por atualizar a cada segundo
@@ -139,24 +148,23 @@ function update ()
     
 
     //Código com o problema resolvido
+    //Adicionada a verificação para permitir apenas dois tiros
     if(cursors.space.isDown && playerPodeAtirar == 1 && qtdeTiros < 2){
-        if(qtdeTiros == 0) {
+        if(qtdeTiros <= 1 && laser1Ativo == 0) {
             obj_laser1 = this.add.image(obj_player.x, obj_player.y, 'spr_laser').setOrigin(0.5, 1);
             laser1Ativo = 1;
         }
-        if(qtdeTiros == 1) {
+        if(qtdeTiros == 1 && laser2Ativo == 0) {
             obj_laser2 = this.add.image(obj_player.x, obj_player.y, 'spr_laser').setOrigin(0.5, 1);
             laser2Ativo = 1;
         }
-        
         qtdeTiros++;
         playerPodeAtirar = 0
     }
 
     //Resetando a variavel de controle ao soltar a tecla espaçao para que o jogador possa atirar novamente
     if(cursors.space.isUp){playerPodeAtirar = 1}
-    if(laser1Ativo == 1){obj_laser1.y--};
-    if(laser2Ativo == 1){obj_laser2.y--};
+
     //Variando o eixo y do laser para q ele se movimente na tela
     //-----Isso irá causar um outro problema, pois o obj_laser só será criado ao pressionar a tecla espaço,
     //-----então ao iniciar o jogo será apresentado um erro pelo objeto ainda não ter sido instanciado
@@ -167,6 +175,31 @@ function update ()
     //código novo com erro solucionado
     //A variável qtdeTiros também deverá ser alterada quando um tiro for dado
     // if(qtdeTiros > 0 ) {obj_laser.y--};
+    //Código alterado para dois tiros
+    if(laser1Ativo == 1){
+        obj_laser1.y-=10; //y-=10 para aumentar a velocidade de subida do laser
+        if(obj_laser1.y < -70){ //Destruir o obj_laser1 ao atingir determinada altura
+            obj_laser1.destroy()
+            laser1Ativo = 0
+            qtdeTiros --
+        }
+    }
+
+    if(laser2Ativo == 1){
+        obj_laser2.y-=10;
+        if(obj_laser2.y < -70){
+            obj_laser2.destroy()
+            laser2Ativo = 0
+            qtdeTiros --
+        }
+    };
+
+    strDebug.setText(
+        'SInvaders' + '\n' +
+        'Qtde de Tiros: ' + qtdeTiros + '\n' +
+        'laser1Ativo: ' + laser1Ativo + '\n' +
+        'laser2Ativo: ' + laser2Ativo
+    )
 }
 
 function render ()
