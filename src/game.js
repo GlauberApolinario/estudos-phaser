@@ -25,6 +25,11 @@ var qtdeTiros = 0
 var laser1Ativo = 0;
 var laser2Ativo = 0;
 
+var strDebug;
+
+//Variável para cronometrar o tempo em que o flare ficara visivel
+var flareTimer = 0;
+
 function init ()
 {
 
@@ -42,6 +47,8 @@ function preload ()
     this.load.image('spr_player', 'src/assets/img/spr_player.png')
     //Imagem do laser
     this.load.image('spr_laser', 'src/assets/img/spr_laser.png')
+    //Imagem do flare do tiro
+    this.load.image('spr_flare', 'src/assets/img/spr_flare.png')
 
     //Carregamento de uma imagem q contenham sprites
     //this.load.spritesheet(key, src, {frameWidth, frameHeight})
@@ -113,7 +120,11 @@ function create ()
         fontFamily: 'Verdana',
         fontSize: '20px',
         fill: '#FFFFFF'
-    }).setOrigin(0.5,0)
+    }).setOrigin(0.5,0);
+
+    //Criação do flare dos tiros
+    obj_flare = this.add.image(obj_player.x, obj_player.y-55, 'spr_flare').setOrigin(0.5, 0.5);
+    obj_flare.visible = 0;
 
 }
 
@@ -126,9 +137,23 @@ function update ()
     obj_fire_fx2.x = obj_player.x + 15;
     obj_fire_fx2.y = obj_player.y + 3;
 
+    //If que faz com q a imagem do flare se decremente no alpha, x e y ate sumir completamente
+    if(flareTimer > 0) {
+        flareTimer -=0.1;
+        obj_flare.alpha = flareTimer;
+        obj_flare.scaleX = flareTimer;
+        obj_flare.scaleY = flareTimer;
+    } else {
+        obj_flare.visible = 0
+    }
+
     //Movimentação da nave ao pressionar as teclas para a esquerda e direita
     if(cursors.right.isDown){obj_player.x += 5};
     if(cursors.left.isDown){obj_player.x -= 5};
+
+    //Movimentação do flare junto com a nave
+    obj_flare.x = obj_player.x;
+    obj_flare.y = obj_player.y-55;  
 
     //Para impedir que a nave saia da tela devemos travar seu ponto x para q fique dentro dos limites
     //como a imagem da nave tem 70 pixels e seu ponto pivot x está no seu centro, travamos 35 pixels de cada lado para impedir q ela saia da tela
@@ -152,10 +177,14 @@ function update ()
     if(cursors.space.isDown && playerPodeAtirar == 1 && qtdeTiros < 2){
         if(qtdeTiros <= 1 && laser1Ativo == 0) {
             obj_laser1 = this.add.image(obj_player.x, obj_player.y, 'spr_laser').setOrigin(0.5, 1);
+            obj_flare.visible = 1;
+            flareTimer = 1;
             laser1Ativo = 1;
         }
         if(qtdeTiros == 1 && laser2Ativo == 0) {
             obj_laser2 = this.add.image(obj_player.x, obj_player.y, 'spr_laser').setOrigin(0.5, 1);
+            obj_flare.visible = 1;
+            flareTimer = 1;
             laser2Ativo = 1;
         }
         qtdeTiros++;
@@ -201,6 +230,7 @@ function update ()
         'laser2Ativo: ' + laser2Ativo
     )
 }
+ 
 
 function render ()
 {
