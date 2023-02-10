@@ -49,6 +49,10 @@ function preload ()
     this.load.image('spr_laser', 'src/assets/img/spr_laser.png')
     //Imagem do flare do tiro
     this.load.image('spr_flare', 'src/assets/img/spr_flare.png')
+    //Imagens dos inimigos
+    this.load.image('spr_enemy1', 'src/assets/img/spr_enemy1.png')
+    this.load.image('spr_enemy2', 'src/assets/img/spr_enemy2.png')
+    this.load.image('spr_enemy3', 'src/assets/img/spr_enemy3.png')
 
     //Carregamento de uma imagem q contenham sprites
     //this.load.spritesheet(key, src, {frameWidth, frameHeight})
@@ -126,6 +130,20 @@ function create ()
     obj_flare = this.add.image(obj_player.x, obj_player.y-55, 'spr_flare').setOrigin(0.5, 0.5);
     obj_flare.visible = 0;
 
+    //Criação do grupo de inimigos
+    this.Group_Enemy = this.add.group({runChildUpdate: true})
+    var OrigemX = 175;
+    var OrigemY = 50;
+    for(i=0; i<=9; i++){
+        for(j=0; j<=3; j++){
+            var sprite = '';
+            if(j== 0){sprite = 'spr_enemy1'};
+            if(j== 1){sprite = 'spr_enemy2'};
+            if(j>= 2){sprite = 'spr_enemy3'};
+            this.Group_Enemy.add(enemy = new Enemy(this, OrigemX+50*i, OrigemY+50*j, sprite))
+        }
+    }
+
 }
 
 //Função responsavel por atualizar a cada segundo
@@ -136,6 +154,8 @@ function update ()
     obj_fire_fx1.y = obj_player.y + 3;
     obj_fire_fx2.x = obj_player.x + 15;
     obj_fire_fx2.y = obj_player.y + 3;
+
+    // this.Group_Enemy.add(enemy = new Enemy(this, 400, 350, 'spr_enemy2'))
 
     //If que faz com q a imagem do flare se decremente no alpha, x e y ate sumir completamente
     if(flareTimer > 0) {
