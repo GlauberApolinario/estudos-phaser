@@ -25,6 +25,18 @@ var qtdeTiros = 0
 var laser1Ativo = 0;
 var laser2Ativo = 0;
 
+//Varivael com texto de Debug
+var strDebug;
+
+//Variável para cronometrar o tempo em que o flare ficara visivel
+var flareTimer = 0;
+
+//Variáveis para acompanhar o movimento do bloco de inimigos
+var agentDir = 1;
+var agentVel = 5;
+var agentOldX = 400;
+var agentOldY = 50;
+
 function init ()
 {
 
@@ -42,6 +54,14 @@ function preload ()
     this.load.image('spr_player', 'src/assets/img/spr_player.png')
     //Imagem do laser
     this.load.image('spr_laser', 'src/assets/img/spr_laser.png')
+    //Imagem do flare do tiro
+    this.load.image('spr_flare', 'src/assets/img/spr_flare.png')
+    //Imagens dos inimigos
+    this.load.image('spr_enemy1', 'src/assets/img/spr_enemy1.png')
+    this.load.image('spr_enemy2', 'src/assets/img/spr_enemy2.png')
+    this.load.image('spr_enemy3', 'src/assets/img/spr_enemy3.png')
+    //Imagem do agente
+    this.load.image('spr_agent', 'src/assets/img/spr_agent.png')
 
     //Carregamento de uma imagem q contenham sprites
     //this.load.spritesheet(key, src, {frameWidth, frameHeight})
@@ -52,6 +72,13 @@ function preload ()
         frameWidth: 16,
         frameHeight: 30
     });
+
+    //Carregamento da imagem de explosão do inimigo
+    this.load.spritesheet('spr_enemy_explode', 'src/assets/img/spr_enemy_explode.png', {
+        frameWidth: 70,
+        frameHeight: 70
+    })
+
 }
 
 //Nessa função serão criados os objetos carregados na preload
@@ -83,6 +110,14 @@ function create ()
         repeat:-1
     });
 
+    //Criando a animação de explosão
+    this.anims.create({
+        key: 'spr_enemy_explode',
+        frames: this.anims.generateFrameNumbers('spr_enemy_explode'),
+        frameRate: 20,
+        repeat: 0 //Essa imagem não deve se repetir
+    })
+
     //Criado um objeto e inserido os sprites nele
     //como ponto de inserção foram usados os pontos x e y do obj_player (obj_player.x, obj_player.y), e a animação spr_fire_fx como fonte
     //Dessa forma, sempre que o jogador se movimentar a animação irá se mover junto
@@ -109,11 +144,34 @@ function create ()
 
 
     //Criação da variável de DEBUG
-    strDebug = this.add.text(400, 5, '-DEBUG-', {
-        fontFamily: 'Verdana',
-        fontSize: '20px',
-        fill: '#FFFFFF'
-    }).setOrigin(0.5,0)
+    // strDebug = this.add.text(400, 5, '-DEBUG-', {
+    //     fontFamily: 'Verdana',
+    //     fontSize: '20px',
+    //     fill: '#FFFFFF'
+    // }).setOrigin(0.5,0);
+
+    //Criação do flare dos tiros
+    obj_flare = this.add.image(obj_player.x, obj_player.y-55, 'spr_flare').setOrigin(0.5, 0.5);
+    obj_flare.visible = 0;
+
+    //Criação do grupo de inimigos
+    this.Group_Enemy = this.add.group({runChildUpdate: true});
+    this.Group_Enemy_Explode = this.add.group({runChildUpdate: true});
+    var OrigemX = 175;
+    var OrigemY = 50;
+    for(i=0; i<=9; i++){
+        for(j=0; j<=3; j++){
+            var sprite = '';
+            if(j== 0){sprite = 'spr_enemy1'};
+            if(j== 1){sprite = 'spr_enemy2'};
+            if(j>= 2){sprite = 'spr_enemy3'};
+            this.Group_Enemy.add(enemy = new Enemy(this, OrigemX+50*i, OrigemY+50*j, sprite))
+        }
+    }
+
+    //Criação do objeto agente para verificação do movimento dos inimigos
+    obj_agent = this.add.sprite(400, 50, 'spr_agent').setOrigin(0.5, 0.5)
+
 
 }
 
@@ -126,9 +184,25 @@ function update ()
     obj_fire_fx2.x = obj_player.x + 15;
     obj_fire_fx2.y = obj_player.y + 3;
 
+    // this.Group_Enemy.add(enemy = new Enemy(this, 400, 350, 'spr_enemy2'))
+
+    //If que faz com q a imagem do flare se decremente no alpha, x e y ate sumir completamente
+    if(flareTimer > 0) {
+        flareTimer -=0.1;
+        obj_flare.alpha = flareTimer;
+        obj_flare.scaleX = flareTimer;
+        obj_flare.scaleY = flareTimer;
+    } else {
+        obj_flare.visible = 0
+    }
+
     //Movimentação da nave ao pressionar as teclas para a esquerda e direita
     if(cursors.right.isDown){obj_player.x += 5};
     if(cursors.left.isDown){obj_player.x -= 5};
+
+    //Movimentação do flare junto com a nave
+    obj_flare.x = obj_player.x;
+    obj_flare.y = obj_player.y-55;  
 
     //Para impedir que a nave saia da tela devemos travar seu ponto x para q fique dentro dos limites
     //como a imagem da nave tem 70 pixels e seu ponto pivot x está no seu centro, travamos 35 pixels de cada lado para impedir q ela saia da tela
@@ -152,10 +226,14 @@ function update ()
     if(cursors.space.isDown && playerPodeAtirar == 1 && qtdeTiros < 2){
         if(qtdeTiros <= 1 && laser1Ativo == 0) {
             obj_laser1 = this.add.image(obj_player.x, obj_player.y, 'spr_laser').setOrigin(0.5, 1);
+            obj_flare.visible = 1;
+            flareTimer = 1;
             laser1Ativo = 1;
         }
         if(qtdeTiros == 1 && laser2Ativo == 0) {
             obj_laser2 = this.add.image(obj_player.x, obj_player.y, 'spr_laser').setOrigin(0.5, 1);
+            obj_flare.visible = 1;
+            flareTimer = 1;
             laser2Ativo = 1;
         }
         qtdeTiros++;
@@ -194,13 +272,34 @@ function update ()
         }
     };
 
-    strDebug.setText(
-        'SInvaders' + '\n' +
-        'Qtde de Tiros: ' + qtdeTiros + '\n' +
-        'laser1Ativo: ' + laser1Ativo + '\n' +
-        'laser2Ativo: ' + laser2Ativo
-    )
+    //Código para destruir o laser ao acertar um inimigo
+    if(laser1Ativo == -1){
+        laser1Ativo = 0;
+        this.Group_Enemy_Explode.add(enemy_explode = 
+            new Enemy_Explode(this, obj_laser1.x, obj_laser1.y, 'spr_enemy_explode'));
+    }
+
+    if(laser2Ativo == -1){
+        laser2Ativo = 0;
+        this.Group_Enemy_Explode.add(enemy_explode = 
+            new Enemy_Explode(this, obj_laser2.x, obj_laser2.y, 'spr_enemy_explode'));
+    }
+
+    // strDebug.setText(
+    //     'SInvaders' + '\n' +
+    //     'Qtde de Tiros: ' + qtdeTiros + '\n' +
+    //     'laser1Ativo: ' + laser1Ativo + '\n' +
+    //     'laser2Ativo: ' + laser2Ativo
+    // )
+
+    // Mover o agente de um lado para outro na tela
+    agentOldX = obj_agent.x;
+    agentOldY = obj_agent.y;
+    if(obj_agent.x >800) {agentDir = -1; obj_agent.x = 800}
+    if(obj_agent.x <0) {agentDir = 1; obj_agent.x = 0}
+    obj_agent.x += agentVel*agentDir
 }
+
 
 function render ()
 {
